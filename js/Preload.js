@@ -7,6 +7,13 @@ class Preload extends Phaser.Scene{
 		this.load.audio('sndMusic',['snd/music.ogg'])
 		this.load.audio('sndJump',['snd/jump.ogg'])
 		this.load.audio('sndGetCoin',['snd/getcoin.ogg'])
+		this.load.image('end','img/WinLogo.jpg')
+		this.load.image('start','img/PhaserLogo.png')
+		this.load.image('sky', 'img/sky.png')
+		this.load.image('platform', 'img/platform.png')
+		this.load.image('enemy', 'img/enemy.png')
+		this.load.spritesheet('player', 'img/Run.png', {frameWidth: 32, frameHeight: 32})
+		this.load.spritesheet('coin', 'img/coin.png', {frameWidth: 32, frameHeight: 32})
 	}
 	
 	create(){

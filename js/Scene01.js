@@ -1,6 +1,29 @@
+class DecisionTree {
+	constructor(sceneName, condition = () => true) {
+		this.sceneName = sceneName;
+		this.condition = condition;
+		this.nextScene = null;
+	}
+
+	setNextScene(nextSceneNode) {
+		this.nextScene = nextSceneNode;
+	}
+
+	canAdvance() {
+		return this.nextScene && this.nextScene.condition();
+	}
+
+	getNextSceneName() {
+		return this.canAdvance() ? this.nextScene.sceneName : null;
+	}
+}
+
 class Scene01 extends Phaser.Scene {
 	constructor() {
-		super('Scene01')
+		super('Scene01');
+
+		this.sceneDecisionTree = new DecisionTree('Scene01');
+		this.sceneDecisionTree.setNextScene(new DecisionTree('Scene02', () => this.collectedCoins >= this.totalCoins));
 	}
 
 	create() {
@@ -130,16 +153,16 @@ class Scene01 extends Phaser.Scene {
 		this.score++;
 		this.setScore();
 
-		if (this.collectedCoins >= this.totalCoins) {
-			this.advanceToNextLevel();
-		}
+		this.advanceToNextLevel();
 	}
 
 	advanceToNextLevel() {
-		this.sndMusic.stop();
-		this.scene.start('Scene02', {
-			score: this.score
-		});
+		const nextSceneName = this.sceneDecisionTree.getNextSceneName();
+
+		if (nextSceneName) {
+			this.sndMusic.stop();
+			this.scene.start(nextSceneName, { score: this.score });
+		}
 	}
 
 	movePlatform(platform) {

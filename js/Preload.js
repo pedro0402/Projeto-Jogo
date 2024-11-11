@@ -1,0 +1,35 @@
+class Preload extends Phaser.Scene{
+	constructor(){
+		super('Preload')
+	}
+	
+	preload(){
+		this.load.audio('sndMusic',['snd/music.ogg'])
+		this.load.audio('sndJump',['snd/jump.ogg'])
+		this.load.audio('sndGetCoin',['snd/getcoin.ogg'])
+	}
+	
+	create(){
+		this.anims.create({
+			key: 'walk',
+			frames: this.anims.generateFrameNumbers('player', {
+				start: 0,
+				end: 3
+			}),
+			frameRate: 8,
+			repeat: -1
+		})
+		
+		this.anims.create({
+			key: 'spin',
+			frames: this.anims.generateFrameNumbers('coin',{
+				start: 0,
+				end: 4
+			}),
+			frameRate: 8,
+			repeat: -1
+		})
+	
+		this.scene.start('StartScene')
+	}
+}

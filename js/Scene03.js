@@ -1,16 +1,16 @@
-class Scene02 extends Phaser.Scene {
+class Scene03 extends Phaser.Scene {
     constructor() {
-        super('Scene02');
+        super('Scene03');
     }
 
     init(data) {
-        this.score = data.score || 0;
+        this.score = data.score;
     }
 
     create() {
         this.sndMusic = this.sound.add('sndMusic');
         this.sndMusic.play({
-            volume: .0,
+            volume: 0.0,
             loop: false
         });
         this.sndJump = this.sound.add('sndJump');
@@ -19,12 +19,12 @@ class Scene02 extends Phaser.Scene {
         this.sky = this.add.image(0, 0, 'sky').setOrigin(0);
         this.sky.displayWidth = 1000;
         this.sky.displayHeight = 600;
-        this.sky.alpha = .5;
+        this.sky.alpha = 0.5;
 
         this.player = this.physics.add.sprite(50, 500, 'player')
             .setCollideWorldBounds(true)
             .setScale(2)
-            .setBounce(.4);
+            .setBounce(0.4);
         this.player.canJump = true;
         this.player.body.setSize(16, 32);
 
@@ -39,7 +39,7 @@ class Scene02 extends Phaser.Scene {
         this.platforms.create(1100, 200, 'platform');
         this.platforms.create(1090, 475, 'platform');
         this.platforms.create(600, 400, 'platform')
-            .setScale(.75, 1)
+            .setScale(0.75, 1)
             .refreshBody();
 
         this.mPlatforms = this.physics.add.group({
@@ -47,12 +47,12 @@ class Scene02 extends Phaser.Scene {
             immovable: true
         });
 
-        let mPlatform = this.mPlatforms.create(150, 475, 'platform').setScale(.25, 1);
+        let mPlatform = this.mPlatforms.create(150, 475, 'platform').setScale(0.25, 1);
         mPlatform.speed = 2;
         mPlatform.minX = 150;
         mPlatform.maxX = 300;
 
-        mPlatform = this.mPlatforms.create(500, 280, 'platform').setScale(.25, 1);
+        mPlatform = this.mPlatforms.create(500, 280, 'platform').setScale(0.25, 1);
         mPlatform.speed = 1;
         mPlatform.minX = 500;
         mPlatform.maxX = 800;
@@ -67,9 +67,9 @@ class Scene02 extends Phaser.Scene {
             }
         });
 
-        this.coins.children.iterate((c) => {
-            c.setBounceY(Phaser.Math.FloatBetween(.4, .8));
-            c.anims.play('spin');
+        this.coins.children.iterate((coin) => {
+            coin.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
+            coin.anims.play('spin');
         });
 
         this.txtScore = this.add.text(15, 15, `SCORE: ${this.score}`, { fontSize: '32px' })
@@ -78,15 +78,14 @@ class Scene02 extends Phaser.Scene {
         this.setScore();
 
         this.enemies = this.physics.add.group();
-        let enemy = this.enemies.create(Phaser.Math.Between(50, 950), 0, 'enemy')
-            .setBounce(1)
-            .setCollideWorldBounds(true)
-            .setVelocity(Math.random() < .5 ? -200 : 200, 50);
 
-        enemy = this.enemies.create(Phaser.Math.Between(50, 950), 0, 'enemy')
-            .setBounce(1)
-            .setCollideWorldBounds(true)
-            .setVelocity(Math.random() < .5 ? -200 : 200, 50);
+        // Adicionando 3 inimigos
+        for (let i = 0; i < 3; i++) {
+            this.enemies.create(Phaser.Math.Between(50, 950), 0, 'enemy')
+                .setBounce(1)
+                .setCollideWorldBounds(true)
+                .setVelocity(Math.random() < 0.5 ? -200 : 200, 50);
+        }
 
         this.physics.add.collider(this.player, this.mPlatforms, this.platformMovingThings);
         this.physics.add.collider(this.player, this.enemies, this.enemyHit, null, this);
@@ -101,11 +100,6 @@ class Scene02 extends Phaser.Scene {
         this.cameras.main.setBounds(0, 0, 1000, 600).startFollow(this.player);
 
         this.gameOver = false;
-
-        this.sceneDecisionTree = new DecisionTree('Scene02');
-        this.sceneDecisionTree.setNextScene(
-            new DecisionTree('Scene03', () => this.coins.countActive() <= 0)
-        );
     }
 
     enemyHit(player, enemy) {
@@ -117,13 +111,13 @@ class Scene02 extends Phaser.Scene {
 
         setTimeout(() => {
             this.add.text(game.config.width / 2, game.config.height / 2, 'GAME OVER', { fontSize: '50px' })
-                .setOrigin(.5)
+                .setOrigin(0.5)
                 .setShadow(0, 0, '#000', 3)
                 .setScrollFactor(0);
 
             setTimeout(() => {
                 this.add.text(game.config.width / 2, game.config.height / 2 + 50, 'PRESS ENTER', { fontSize: '32px' })
-                    .setOrigin(.5)
+                    .setOrigin(0.5)
                     .setScrollFactor(0);
 
                 this.input.keyboard.addKey('enter')
@@ -138,27 +132,27 @@ class Scene02 extends Phaser.Scene {
         this.txtScore.setText(this.score > 9 ? `SCORE: ${this.score}` : `SCORE: 0${this.score}`);
     }
 
-    collectCoin(p, coin) {
+    collectCoin(player, coin) {
         this.sndGetCoin.play();
         coin.destroy();
         this.score++;
         this.setScore();
 
-        if (this.coins.countActive() <= 0) {
-            this.sndMusic.stop();
-            this.scene.start('Scene03', {score : this.score});
-        }
+        if(this.coins.countActive() <= 0){
+			this.sndMusic.stop()
+			this.scene.start('EndScene')
+		}
     }
 
-    movePlatform(p) {
-        if (p.x < p.minX || p.x > p.maxX) {
-            p.speed *= -1;
+    movePlatform(platform) {
+        if (platform.x < platform.minX || platform.x > platform.maxX) {
+            platform.speed *= -1;
         }
-        p.x += p.speed;
+        platform.x += platform.speed;
     }
 
-    platformMovingThings(sprite, plat) {
-        sprite.x += plat.speed;
+    platformMovingThings(sprite, platform) {
+        sprite.x += platform.speed;
     }
 
     update() {
@@ -176,9 +170,7 @@ class Scene02 extends Phaser.Scene {
             }
 
             if (!this.player.body.touching.down) {
-                this.player.setFrame(
-                    this.player.body.velocity.y < 0 ? 1 : 3
-                );
+                this.player.setFrame(this.player.body.velocity.y < 0 ? 1 : 3);
             }
 
             if (this.control.up.isDown && this.player.canJump && this.player.body.touching.down) {
@@ -191,8 +183,8 @@ class Scene02 extends Phaser.Scene {
                 this.player.canJump = true;
             }
 
-            this.mPlatforms.children.iterate((plat) => {
-                this.movePlatform(plat);
+            this.mPlatforms.children.iterate((platform) => {
+                this.movePlatform(platform);
             });
         }
     }

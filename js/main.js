@@ -5,7 +5,7 @@ window.onload = function(){
 		type: Phaser.Canvas, 
 		width: 800,
 		height: 600,
-		scene: [Preload,StartScene,Scene01,Scene02,EndScene],
+		scene: [Preload,StartScene,Scene01,Scene02, Scene03,EndScene],
 		physics: {
 			default: 'arcade',
 			arcade: {

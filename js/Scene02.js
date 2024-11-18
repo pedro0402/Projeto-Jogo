@@ -2,6 +2,7 @@ class Scene02 extends Phaser.Scene {
     constructor() {
         super('Scene02');
     }
+    
 
     init(data) {
         this.score = data.score || 0;

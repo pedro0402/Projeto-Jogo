@@ -3,6 +3,7 @@ class EndScene extends Phaser.Scene{
 		super('EndScene')
 	}
 	
+	
 	create(){
 		this.add.image(0,0,'end').setOrigin(0)
 		

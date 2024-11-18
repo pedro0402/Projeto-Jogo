@@ -2,6 +2,7 @@ class Scene03 extends Phaser.Scene {
     constructor() {
         super('Scene03');
     }
+    
 
     init(data) {
         this.score = data.score;
@@ -79,7 +80,6 @@ class Scene03 extends Phaser.Scene {
 
         this.enemies = this.physics.add.group();
 
-        // Adicionando 3 inimigos
         for (let i = 0; i < 3; i++) {
             this.enemies.create(Phaser.Math.Between(50, 950), 0, 'enemy')
                 .setBounce(1)

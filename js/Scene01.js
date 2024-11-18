@@ -4,6 +4,7 @@ class DecisionTree {
 		this.condition = condition;
 		this.nextScene = null;
 	}
+	
 
 	setNextScene(nextSceneNode) {
 		this.nextScene = nextSceneNode;

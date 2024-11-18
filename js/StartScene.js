@@ -3,6 +3,7 @@ class StartScene extends Phaser.Scene{
 		super('StartScene')
 	}
 	
+	
 	create(){
 		this.add.image(0,0,'start').setOrigin(0)
 		

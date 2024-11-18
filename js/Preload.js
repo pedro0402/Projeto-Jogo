@@ -3,6 +3,7 @@ class Preload extends Phaser.Scene{
 		super('Preload')
 	}
 	
+	
 	preload(){
 		this.load.audio('sndMusic',['snd/music.ogg'])
 		this.load.audio('sndJump',['snd/jump.ogg'])

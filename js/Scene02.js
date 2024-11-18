@@ -3,7 +3,6 @@ class Scene02 extends Phaser.Scene {
         super('Scene02');
     }
     
-
     init(data) {
         this.score = data.score || 0;
     }
@@ -73,6 +72,9 @@ class Scene02 extends Phaser.Scene {
             c.anims.play('spin');
         });
 
+        // Ordenando as moedas pela coordenada Y com Selection Sort
+        this.selectionSort(this.coins.getChildren());
+
         this.txtScore = this.add.text(15, 15, `SCORE: ${this.score}`, { fontSize: '32px' })
             .setShadow(0, 0, '#000', 3)
             .setScrollFactor(0);
@@ -107,6 +109,23 @@ class Scene02 extends Phaser.Scene {
         this.sceneDecisionTree.setNextScene(
             new DecisionTree('Scene03', () => this.coins.countActive() <= 0)
         );
+    }
+
+    // Função para a ordenação das moedas usando o Selection Sort
+    selectionSort(coins) {
+        for (let i = 0; i < coins.length; i++) {
+            let minIndex = i;
+            for (let j = i + 1; j < coins.length; j++) {
+                if (coins[j].y < coins[minIndex].y) {
+                    minIndex = j;
+                }
+            }
+            if (minIndex !== i) {
+                let temp = coins[i];
+                coins[i] = coins[minIndex];
+                coins[minIndex] = temp;
+            }
+        }
     }
 
     enemyHit(player, enemy) {

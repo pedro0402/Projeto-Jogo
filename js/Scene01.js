@@ -19,14 +19,12 @@ class DecisionTree {
 	}
 }
 
-// Função de ordenação Bubble Sort
+
 function bubbleSort(coins) {
     let len = coins.length;
     for (let i = 0; i < len - 1; i++) {
         for (let j = 0; j < len - 1 - i; j++) {
-            // Comparar as moedas pela posição 'y' (você pode alterar isso para outro critério)
             if (coins[j].y > coins[j + 1].y) {
-                // Trocar as moedas
                 let temp = coins[j];
                 coins[j] = coins[j + 1];
                 coins[j + 1] = temp;
@@ -35,7 +33,6 @@ function bubbleSort(coins) {
     }
 }
 
-// Dentro da classe Scene01, onde as moedas são criadas e organizadas
 class Scene01 extends Phaser.Scene {
     constructor() {
         super('Scene01');
@@ -96,20 +93,20 @@ class Scene01 extends Phaser.Scene {
         this.totalCoins = 15;
         this.collectedCoins = 0;
 
-        // Criando as moedas
+        
         this.coins = this.physics.add.group({
             key: 'coin',
             repeat: this.totalCoins - 1,
             setXY: { x: 12, y: -50, stepX: 70 }
         });
 
-        // Definindo a animação das moedas
+        
         this.coins.children.iterate((coin) => {
             coin.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
             coin.anims.play('spin');
         });
 
-        // Ordenando as moedas após a criação
+        
         bubbleSort(this.coins.getChildren());
 
         this.score = 0;

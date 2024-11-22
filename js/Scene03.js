@@ -19,8 +19,8 @@ class Scene03 extends Phaser.Scene {
 
         this.createGraph();
 
-        let startNode = 0; // Índice da plataforma inicial
-        let endNode = 1;   // Índice da plataforma final
+        let startNode = 0; 
+        let endNode = 1;  
 
         let path = this.findPath(startNode, endNode);
         console.log(path);
@@ -92,12 +92,12 @@ class Scene03 extends Phaser.Scene {
     }
 
     createGraph() {
-        // Adicionar as plataformas ao grafo
+        
         this.graph = {
-            0: [1, 2],  // Plataforma 0 está conectada com as plataformas 1 e 2
-            1: [0, 3],  // Plataforma 1 está conectada com as plataformas 0 e 3
-            2: [0],     // Plataforma 2 está conectada apenas com a plataforma 0
-            3: [1]      // Plataforma 3 está conectada apenas com a plataforma 1
+            0: [1, 2],  
+            1: [0, 3],  
+            2: [0],     
+            3: [1]      
         };
     }
 
@@ -122,40 +122,39 @@ class Scene03 extends Phaser.Scene {
             }
         }
 
-        return null; // Retorna null se não houver caminho encontrado
+        return null; 
     }
 
-    // Função para criar plataformas com posições aleatórias
     createRandomPlatforms() {
         let platformData = [
             { x: 0, y: 600, scaleX: 2.5, scaleY: 1, originX: 0, originY: 1 },
-            { x: 200, y: 200, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
-            { x: 1100, y: 200, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
-            { x: 1090, y: 475, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
-            { x: 600, y: 400, scaleX: 0.75, scaleY: 1, originX: 0, originY: 0 },
+            { x: 350, y: 190, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
+            { x: 800, y: 150, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
+            { x: 1050, y: 350, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
+            { x: 600, y: 450, scaleX: 0.75, scaleY: 1, originX: 0, originY: 0 },
         ];
-
-        // Embaralhar as plataformas
+    
+        
         Phaser.Utils.Array.Shuffle(platformData);
-
-        // Criar as plataformas na cena
+    
+        
         platformData.forEach(platform => {
             this.platforms.create(platform.x, platform.y, 'platform')
                 .setScale(platform.scaleX, platform.scaleY)
                 .setOrigin(platform.originX, platform.originY)
                 .refreshBody();
         });
-
-        // Criar plataformas móveis (mMovingPlatforms)
-        let mPlatform = this.mPlatforms.create(150, 475, 'platform').setScale(0.25, 1);
+    
+       
+        let mPlatform = this.mPlatforms.create(200, 375, 'platform').setScale(0.25, 1);
         mPlatform.speed = 2;
-        mPlatform.minX = 150;
-        mPlatform.maxX = 300;
-
-        mPlatform = this.mPlatforms.create(500, 280, 'platform').setScale(0.25, 1);
+        mPlatform.minX = 200;
+        mPlatform.maxX = 350;
+    
+        mPlatform = this.mPlatforms.create(550, 280, 'platform').setScale(0.25, 1);
         mPlatform.speed = 1;
-        mPlatform.minX = 500;
-        mPlatform.maxX = 800;
+        mPlatform.minX = 550;
+        mPlatform.maxX = 750;
     }
 
     enemyHit(player, enemy) {
@@ -244,10 +243,8 @@ class Scene03 extends Phaser.Scene {
             });
 
             this.enemies.children.iterate((enemy) => {
-                if (enemy.x < enemy.maxX && enemy.x > enemy.minX) {
+                if (enemy.x < enemy.minX || enemy.x > enemy.maxX) {
                     enemy.setVelocityX(Phaser.Math.Between(150, 250));
-                } else {
-                    enemy.setVelocityX(Phaser.Math.Between(-250, -150));
                 }
             });
         }

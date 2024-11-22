@@ -72,7 +72,6 @@ class Scene02 extends Phaser.Scene {
             c.anims.play('spin');
         });
 
-        // Ordenando as moedas pela coordenada Y com Selection Sort
         this.selectionSort(this.coins.getChildren());
 
         this.txtScore = this.add.text(15, 15, `SCORE: ${this.score}`, { fontSize: '32px' })
@@ -111,7 +110,6 @@ class Scene02 extends Phaser.Scene {
         );
     }
 
-    // Função para a ordenação das moedas usando o Selection Sort
     selectionSort(coins) {
         for (let i = 0; i < coins.length; i++) {
             let minIndex = i;

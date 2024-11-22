@@ -1,44 +1,11 @@
-class DecisionTree {
-	constructor(sceneName, condition = () => true) {
-		this.sceneName = sceneName;
-		this.condition = condition;
-		this.nextScene = null;
-	}
-	
-
-	setNextScene(nextSceneNode) {
-		this.nextScene = nextSceneNode;
-	}
-
-	canAdvance() {
-		return this.nextScene && this.nextScene.condition();
-	}
-
-	getNextSceneName() {
-		return this.canAdvance() ? this.nextScene.sceneName : null;
-	}
-}
-
-
-function bubbleSort(coins) {
-    let len = coins.length;
-    for (let i = 0; i < len - 1; i++) {
-        for (let j = 0; j < len - 1 - i; j++) {
-            if (coins[j].y > coins[j + 1].y) {
-                let temp = coins[j];
-                coins[j] = coins[j + 1];
-                coins[j + 1] = temp;
-            }
-        }
-    }
-}
-
-class Scene01 extends Phaser.Scene {
+class Scene03 extends Phaser.Scene {
     constructor() {
-        super('Scene01');
+        super('Scene03');
+        this.graph = {};
+    }
 
-        this.sceneDecisionTree = new DecisionTree('Scene01');
-        this.sceneDecisionTree.setNextScene(new DecisionTree('Scene02', () => this.collectedCoins >= this.totalCoins));
+    init(data) {
+        this.score = data.score;
     }
 
     create() {
@@ -50,9 +17,18 @@ class Scene01 extends Phaser.Scene {
         this.sndJump = this.sound.add('sndJump');
         this.sndGetCoin = this.sound.add('sndGetCoin');
 
+        this.createGraph();
+
+        let startNode = 0; 
+        let endNode = 1;  
+
+        let path = this.findPath(startNode, endNode);
+        console.log(path);
+
         this.sky = this.add.image(0, 0, 'sky').setOrigin(0);
         this.sky.displayWidth = 1000;
         this.sky.displayHeight = 600;
+        this.sky.alpha = 0.5;
 
         this.player = this.physics.add.sprite(50, 500, 'player')
             .setCollideWorldBounds(true)
@@ -64,62 +40,41 @@ class Scene01 extends Phaser.Scene {
         this.control = this.input.keyboard.createCursorKeys();
 
         this.platforms = this.physics.add.staticGroup();
-        this.platforms.create(0, 600, 'platform')
-            .setScale(2.5, 1)
-            .setOrigin(0, 1)
-            .refreshBody();
-        this.platforms.create(200, 200, 'platform');
-        this.platforms.create(1100, 200, 'platform');
-        this.platforms.create(1090, 475, 'platform');
-        this.platforms.create(600, 400, 'platform')
-            .setScale(0.75, 1)
-            .refreshBody();
-
         this.mPlatforms = this.physics.add.group({
             allowGravity: false,
             immovable: true
         });
 
-        let mPlatform = this.mPlatforms.create(150, 475, 'platform').setScale(0.25, 1);
-        mPlatform.speed = 2;
-        mPlatform.minX = 150;
-        mPlatform.maxX = 300;
+        this.createRandomPlatforms();
 
-        mPlatform = this.mPlatforms.create(500, 280, 'platform').setScale(0.25, 1);
-        mPlatform.speed = 1;
-        mPlatform.minX = 500;
-        mPlatform.maxX = 800;
-
-        this.totalCoins = 15;
-        this.collectedCoins = 0;
-
-        
         this.coins = this.physics.add.group({
             key: 'coin',
-            repeat: this.totalCoins - 1,
-            setXY: { x: 12, y: -50, stepX: 70 }
+            repeat: 14,
+            setXY: {
+                x: 12,
+                y: -50,
+                stepX: 70
+            }
         });
 
-        
         this.coins.children.iterate((coin) => {
             coin.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
             coin.anims.play('spin');
         });
 
-        
-        bubbleSort(this.coins.getChildren());
-
-        this.score = 0;
-        this.txtScore = this.add.text(15, 15, `COINS: ${this.score}`, { fontSize: '32px' })
+        this.txtScore = this.add.text(15, 15, `SCORE: ${this.score}`, { fontSize: '32px' })
             .setShadow(0, 0, '#000', 3)
             .setScrollFactor(0);
         this.setScore();
 
         this.enemies = this.physics.add.group();
-        let enemy = this.enemies.create(Phaser.Math.Between(50, 950), 0, 'enemy')
-            .setBounce(1)
-            .setCollideWorldBounds(true)
-            .setVelocity(Math.random() < 0.5 ? -200 : 200, 50);
+
+        for (let i = 0; i < 3; i++) {
+            this.enemies.create(Phaser.Math.Between(50, 950), 0, 'enemy')
+                .setBounce(1)
+                .setCollideWorldBounds(true)
+                .setVelocity(Math.random() < 0.5 ? -200 : 200, 50);
+        }
 
         this.physics.add.collider(this.player, this.mPlatforms, this.platformMovingThings);
         this.physics.add.collider(this.player, this.enemies, this.enemyHit, null, this);
@@ -134,6 +89,72 @@ class Scene01 extends Phaser.Scene {
         this.cameras.main.setBounds(0, 0, 1000, 600).startFollow(this.player);
 
         this.gameOver = false;
+    }
+
+    createGraph() {
+        
+        this.graph = {
+            0: [1, 2],  
+            1: [0, 3],  
+            2: [0],     
+            3: [1]      
+        };
+    }
+
+    findPath(startNode, endNode) {
+        let visited = new Set();
+        let queue = [[startNode]];
+        visited.add(startNode);
+
+        while (queue.length > 0) {
+            let path = queue.shift();
+            let node = path[path.length - 1];
+
+            if (node === endNode) {
+                return path;
+            }
+
+            for (let neighbor of this.graph[node]) {
+                if (!visited.has(neighbor)) {
+                    visited.add(neighbor);
+                    queue.push([...path, neighbor]);
+                }
+            }
+        }
+
+        return null; 
+    }
+
+    createRandomPlatforms() {
+        let platformData = [
+            { x: 0, y: 600, scaleX: 2.5, scaleY: 1, originX: 0, originY: 1 },
+            { x: 350, y: 190, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
+            { x: 800, y: 150, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
+            { x: 1050, y: 350, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
+            { x: 600, y: 450, scaleX: 0.75, scaleY: 1, originX: 0, originY: 0 },
+        ];
+    
+        
+        Phaser.Utils.Array.Shuffle(platformData);
+    
+        
+        platformData.forEach(platform => {
+            this.platforms.create(platform.x, platform.y, 'platform')
+                .setScale(platform.scaleX, platform.scaleY)
+                .setOrigin(platform.originX, platform.originY)
+                .refreshBody();
+        });
+    
+       
+        let mPlatform = this.mPlatforms.create(200, 375, 'platform').setScale(0.25, 1);
+        mPlatform.speed = 2;
+        mPlatform.minX = 200;
+        mPlatform.maxX = 350;
+    
+        mPlatform = this.mPlatforms.create(550, 280, 'platform').setScale(0.25, 1);
+        mPlatform.speed = 1;
+        mPlatform.minX = 550;
+        mPlatform.maxX = 750;
     }
 
     enemyHit(player, enemy) {
@@ -169,20 +190,12 @@ class Scene01 extends Phaser.Scene {
     collectCoin(player, coin) {
         this.sndGetCoin.play();
         coin.destroy();
-        this.collectedCoins++;
-
         this.score++;
         this.setScore();
 
-        this.advanceToNextLevel();
-    }
-
-    advanceToNextLevel() {
-        const nextSceneName = this.sceneDecisionTree.getNextSceneName();
-
-        if (nextSceneName) {
-            this.sndMusic.stop();
-            this.scene.start(nextSceneName, { score: this.score });
+        if(this.coins.countActive() <= 0){
+            this.sndMusic.stop()
+            this.scene.start('EndScene')
         }
     }
 
@@ -227,6 +240,12 @@ class Scene01 extends Phaser.Scene {
 
             this.mPlatforms.children.iterate((platform) => {
                 this.movePlatform(platform);
+            });
+
+            this.enemies.children.iterate((enemy) => {
+                if (enemy.x < enemy.minX || enemy.x > enemy.maxX) {
+                    enemy.setVelocityX(Phaser.Math.Between(150, 250));
+                }
             });
         }
     }

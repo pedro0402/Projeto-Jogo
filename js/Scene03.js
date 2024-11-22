@@ -20,10 +20,10 @@ class Scene03 extends Phaser.Scene {
         this.createGraph();
 
         let startNode = 0; 
-        let endNode = 1;  
+        let endNode = 3;  
 
         let path = this.findPath(startNode, endNode);
-        console.log(path);
+        console.log('Path found:', path);
 
         this.sky = this.add.image(0, 0, 'sky').setOrigin(0);
         this.sky.displayWidth = 1000;
@@ -92,12 +92,14 @@ class Scene03 extends Phaser.Scene {
     }
 
     createGraph() {
-        
         this.graph = {
-            0: [1, 2],  
-            1: [0, 3],  
-            2: [0],     
-            3: [1]      
+            0: [1, 4], // Chão conecta à plataforma 1 e à plataforma 4
+            1: [0, 2, 5], // Plataforma 1 conecta ao chão, à plataforma 2 e à Plataforma Móvel 1
+            2: [1, 3], // Plataforma 2 conecta à plataforma 1 e à plataforma 3
+            3: [2], // Plataforma 3 conecta somente à plataforma 2
+            4: [0], // Plataforma 4 conecta somente ao chão
+            5: [1], // Plataforma Móvel 1 conecta à plataforma 1
+            6: [1, 3] // Plataforma Móvel 2 conecta à plataforma 1 e à plataforma 3
         };
     }
 
@@ -134,10 +136,8 @@ class Scene03 extends Phaser.Scene {
             { x: 600, y: 450, scaleX: 0.75, scaleY: 1, originX: 0, originY: 0 },
         ];
     
-        
         Phaser.Utils.Array.Shuffle(platformData);
     
-        
         platformData.forEach(platform => {
             this.platforms.create(platform.x, platform.y, 'platform')
                 .setScale(platform.scaleX, platform.scaleY)
@@ -145,7 +145,6 @@ class Scene03 extends Phaser.Scene {
                 .refreshBody();
         });
     
-       
         let mPlatform = this.mPlatforms.create(200, 375, 'platform').setScale(0.25, 1);
         mPlatform.speed = 2;
         mPlatform.minX = 200;
@@ -240,12 +239,6 @@ class Scene03 extends Phaser.Scene {
 
             this.mPlatforms.children.iterate((platform) => {
                 this.movePlatform(platform);
-            });
-
-            this.enemies.children.iterate((enemy) => {
-                if (enemy.x < enemy.minX || enemy.x > enemy.maxX) {
-                    enemy.setVelocityX(Phaser.Math.Between(150, 250));
-                }
             });
         }
     }

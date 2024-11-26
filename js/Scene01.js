@@ -36,9 +36,12 @@ class Scene01 extends Phaser.Scene {
     super("Scene01");
 
     this.sceneDecisionTree = new DecisionTree("Scene01");
-    this.sceneDecisionTree.setNextScene(
-      new DecisionTree("Scene02", () => this.collectedCoins >= this.totalCoins)
-    );
+    this.sceneDecisionTree.setNextScene(new DecisionTree("Scene02", () => true));
+
+
+    // array para armazenar as moedas coletadas
+    this.collectedCoinsList = [];
+    this.remainingTime = 15; // Tempo do cronômetro em segundos
   }
 
   create() {
@@ -99,6 +102,23 @@ class Scene01 extends Phaser.Scene {
       key: "coin",
       repeat: this.totalCoins - 1,
       setXY: { x: 12, y: -50, stepX: 70 },
+    });
+
+    // Criar o texto do cronômetro
+    this.txtTimer = this.add
+      .text(300, 15, `TIMER: ${this.remainingTime}s`, {
+        fontSize: "32px",
+        color: "#ffffff",
+      })
+      .setShadow(0, 0, "#000", 3)
+      .setScrollFactor(0);
+
+    // Agendar uma chamada repetida para atualizar o cronômetro
+    this.time.addEvent({
+      delay: 1000, // 1 segundo
+      callback: this.updateTimer,
+      callbackScope: this,
+      loop: true,
     });
 
     // código que gera as moedas
@@ -169,6 +189,50 @@ class Scene01 extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, 1000, 600).startFollow(this.player);
 
     this.gameOver = false;
+
+    // botao do inventario
+    this.inventoryButton = this.add
+      .text(700, 15, "Inventory", {
+        fontSize: "20px",
+        backgroundColor: "#000",
+        color: "#fff",
+        padding: { left: 10, right: 10, top: 5, bottom: 5 },
+      })
+      .setInteractive()
+      .setOrigin(1, 0)
+      .setScrollFactor(0)
+      .on("pointerdown", () => this.showInventory());
+
+    // Configurar a tecla "I" para abrir o inventário
+    this.input.keyboard.on("keydown-I", () => {
+      this.showInventory();
+    });
+
+    // Criar o grupo do inventário para exibição
+    this.inventoryGroup = this.add.group();
+
+    // Variável para rastrear o estado do inventário
+    this.isInventoryOpen = false;
+
+    // Configurar a tecla "I" para alternar o inventário
+    this.input.keyboard.on("keydown-I", () => {
+      this.toggleInventory();
+    });
+  }
+
+  updateTimer() {
+    console.log("cronometro atualizado: ", this.remainingTime);
+    if (this.remainingTime > 0) {
+      this.remainingTime--;
+      this.txtTimer.setText(`TIMER: ${this.remainingTime}s`);
+      // Efeito de alerta nos últimos 10 segundos
+      if (this.remainingTime <= 10) {
+        this.txtTimer.setColor("#ff0000");
+      }
+    } else {
+      console.log("tempo esgotado! tentando avançar de fase...")
+      this.advanceToNextLevel();
+    }
   }
 
   enemyHit(player, enemy) {
@@ -213,28 +277,91 @@ class Scene01 extends Phaser.Scene {
 
   collectCoin(player, coin) {
     this.sndGetCoin.play();
-    coin.destroy();
+    // Salvar a moeda coletada no inventário
+    this.collectedCoinsList.push({ value: coin.value });
 
     if (coin.valueText) {
       coin.valueText.destroy();
     }
 
+    coin.destroy();
+
     this.collectedCoins++;
 
-    this.score += coin.value
+    this.score += coin.value;
     this.setScore();
 
-    this.advanceToNextLevel();
+  }
+
+  toggleInventory() {
+    if (this.isInventoryOpen) {
+      // Fechar o inventário
+      this.inventoryGroup.clear(true, true);
+      this.isInventoryOpen = false;
+    } else {
+      // Abrir o inventário
+      this.showInventory();
+      this.isInventoryOpen = true;
+    }
+  }
+
+  showInventory() {
+    // Limpar qualquer exibição anterior para evitar duplicações
+    this.inventoryGroup.clear(true, true);
+
+    // Obter posição atual da câmera
+    const cameraX = this.cameras.main.worldView.x;
+    const cameraY = this.cameras.main.worldView.y;
+
+    // Fundo opaco para o inventário
+    const bg = this.add.rectangle(
+      cameraX + 500,
+      cameraY + 300,
+      400,
+      300,
+      0x000000,
+      0.8
+    );
+    this.inventoryGroup.add(bg);
+
+    // Exibir a lista de moedas coletadas
+    let startY = cameraY + 180;
+    this.collectedCoinsList.forEach((coin, index) => {
+      const coinText = this.add.text(
+        cameraX + 320,
+        startY + index * 30,
+        `Moeda ${index + 1}: ${coin.value}`,
+        {
+          fontSize: "20px",
+          color: "#ffffff",
+        }
+      );
+      this.inventoryGroup.add(coinText);
+    });
+
+    // Botão para fechar o inventário
+    const closeButton = this.add
+      .text(cameraX + 500, cameraY + 400, "Close", {
+        fontSize: "20px",
+        backgroundColor: "#ff0000",
+        color: "#fff",
+        padding: { left: 10, right: 10, top: 5, bottom: 5 },
+      })
+      .setInteractive()
+      .setOrigin(0.5)
+      .on("pointerdown", () => {
+        this.toggleInventory(); // Fechar ao clicar no botão
+      });
+    this.inventoryGroup.add(closeButton);
   }
 
   advanceToNextLevel() {
-    const nextSceneName = this.sceneDecisionTree.getNextSceneName();
-
-    if (nextSceneName) {
-      this.sndMusic.stop();
-      this.scene.start(nextSceneName, { score: this.score });
-    }
+    console.log("Avançando para a próxima fase...");
+    this.sndMusic.stop();
+    this.scene.start("Scene02", { score: this.score });
   }
+  
+  
 
   movePlatform(platform) {
     if (platform.x < platform.minX || platform.x > platform.maxX) {
@@ -249,11 +376,34 @@ class Scene01 extends Phaser.Scene {
 
   update() {
     if (!this.gameOver) {
+      // Atualizar a posição dos textos sobre as moedas
       this.coins.children.iterate((coin) => {
         if (coin.valueText) {
           coin.valueText.setPosition(coin.x, coin.y - 20);
         }
       });
+
+      // Atualizar os elementos do inventário, caso esteja aberto
+      if (this.isInventoryOpen) {
+        const cameraX = this.cameras.main.worldView.x;
+        const cameraY = this.cameras.main.worldView.y;
+
+        this.inventoryGroup.children.iterate((child, index) => {
+          if (index === 0) {
+            // Fundo do inventário
+            child.setPosition(cameraX + 500, cameraY + 300);
+          } else if (index === this.inventoryGroup.children.size - 1) {
+            // Botão de fechar
+            child.setPosition(cameraX + 500, cameraY + 400);
+          } else {
+            // Textos das moedas
+            const coinIndex = index - 1; // Ajustar índice por causa do fundo
+            child.setPosition(cameraX + 320, cameraY + 180 + coinIndex * 30);
+          }
+        });
+      }
+
+      // Controles do jogador
       if (this.control.left.isDown) {
         this.player.flipX = true;
         this.player.anims.play("walk", true);

@@ -358,7 +358,10 @@ class Scene01 extends Phaser.Scene {
   advanceToNextLevel() {
     console.log("Avançando para a próxima fase...");
     this.sndMusic.stop();
-    this.scene.start("Scene02", { score: this.score });
+    this.scene.start("Scene02", { 
+      score: this.score,
+      remainingTime: this.remainingTime 
+    });
   }
   
   

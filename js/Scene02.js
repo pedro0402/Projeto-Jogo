@@ -14,6 +14,12 @@ class Scene02 extends Phaser.Scene {
   }
 
   create() {
+    this.timerEvent = this.time.addEvent({
+      delay: 1000, // 1 segundo
+      callback: this.updateTimer,
+      callbackScope: this,
+      loop: true,
+    });
     // botao do inventario
     this.inventoryButton = this.add
       .text(700, 15, "Inventory", {
@@ -292,39 +298,6 @@ class Scene02 extends Phaser.Scene {
     }
   }
 
-  enemyHit(player, enemy) {
-    this.sndMusic.stop();
-    this.physics.pause();
-    player.setTint(0xff0000);
-    player.anims.stop();
-    this.gameOver = true;
-
-    setTimeout(() => {
-      this.add
-        .text(game.config.width / 2, game.config.height / 2, "GAME OVER", {
-          fontSize: "50px",
-        })
-        .setOrigin(0.5)
-        .setShadow(0, 0, "#000", 3)
-        .setScrollFactor(0);
-
-      setTimeout(() => {
-        this.add
-          .text(
-            game.config.width / 2,
-            game.config.height / 2 + 50,
-            "PRESS ENTER",
-            { fontSize: "32px" }
-          )
-          .setOrigin(0.5)
-          .setScrollFactor(0);
-
-        this.input.keyboard.addKey("enter").on("down", () => {
-          this.scene.start("StartScene");
-        });
-      }, 1000);
-    }, 1000);
-  }
 
   setScore() {
     this.txtScore.setText(
@@ -411,4 +384,88 @@ class Scene02 extends Phaser.Scene {
       });
     }
   }
+
+  updateTimer() {
+    if (this.gameOver) return; // Não continuar se o jogo já terminou
+    if (this.remainingTime > 0) {
+      this.remainingTime--;
+      this.txtTimer.setText(`TIMER: ${this.remainingTime}s`);
+      // Efeito de alerta nos últimos 10 segundos
+      if (this.remainingTime <= 10) {
+        this.txtTimer.setColor("#ff0000");
+      }
+    } else {
+      // Tempo esgotado - terminar o jogo
+      this.endGame("TIME UP");
+    }
+  }
+
+  endGame(reason) {
+    // Parar a música e a física do jogo
+    this.sndMusic.stop();
+    this.physics.pause();
+    // redefinindo a lista de moedas
+    this.collectedCoinsList = null;
+    this.collectedCoins = 0;
+
+    // Parar o evento do cronômetro
+    if (this.timerEvent) {
+      this.timerEvent.remove();
+    }
+
+    // Marcar o jogador como "game over"
+    this.player.setTint(0xff0000);
+    this.player.anims.stop();
+    this.gameOver = true;
+
+    // Exibir mensagem de Game Over
+    const centerX = this.cameras.main.width / 2;
+    const centerY = this.cameras.main.height / 2;
+
+    let reasonText = reason || "GAME OVER";
+    this.add
+      .text(centerX, centerY - 50, reasonText, {
+        fontSize: "50px",
+        color: "#ff0000",
+        fontStyle: "bold",
+      })
+      .setOrigin(0.5)
+      .setShadow(0, 0, "#000", 3)
+      .setScrollFactor(0);
+
+    // Botão para reiniciar ou voltar ao menu inicial
+    setTimeout(() => {
+      this.add
+        .text(centerX, centerY, "PRESS ENTER", {
+          fontSize: "32px",
+          color: "#ffffff",
+        })
+        .setOrigin(0.5)
+        .setScrollFactor(0);
+
+      this.input.keyboard.addKey("ENTER").on("down", () => {
+        this.scene.start("Scene01"); // Vai para a cena do menu inicial // Reinicia a cena atual
+      });
+
+      this.add
+        .text(centerX, centerY + 50, "PRESS M FOR MENU", {
+          fontSize: "20px",
+          color: "#ffffff",
+          backgroundColor: "#000000",
+          padding: { left: 10, right: 10, top: 5, bottom: 5 },
+        })
+        .setOrigin(0.5)
+        .setInteractive()
+        .setScrollFactor(0);
+
+      this.input.keyboard.addKey("M").on("down", () => {
+        this.scene.start("StartScene"); // Vai para a cena do menu inicial
+      });
+    }, 1000);
+  }
+
+  enemyHit() {
+    this.endGame("HIT BY ENEMY");
+  }
+  
 }

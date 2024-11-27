@@ -457,7 +457,7 @@ class Scene02 extends Phaser.Scene {
           score: this.score,
           remainingTime: this.remainingTime,
           collectedCoinsList: this.collectedCoinsList,
-        }); 
+        });
       });
 
       this.add

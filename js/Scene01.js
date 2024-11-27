@@ -128,14 +128,6 @@ class Scene01 extends Phaser.Scene {
       .setShadow(0, 0, "#000", 3)
       .setScrollFactor(0);
 
-    // Agendar uma chamada repetida para atualizar o cronômetro
-    this.time.addEvent({
-      delay: 1000, // 1 segundo
-      callback: this.updateTimer,
-      callbackScope: this,
-      loop: true,
-    });
-
     // código que gera as moedas
     this.coins.children.iterate((coin) => {
       // definir o valor aleatorio para as moedas

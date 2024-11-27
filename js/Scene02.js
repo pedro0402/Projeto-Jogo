@@ -43,7 +43,8 @@ class Scene02 extends Phaser.Scene {
     // Criar o grupo do inventário para exibição
     this.inventoryGroup = this.add.group();
 
-    this.totalCoins = 15;
+    this.totalCoins = 10;
+    this.collectedCoins = 0;
     this.sndMusic = this.sound.add("sndMusic");
     this.sndMusic.play({
       volume: 0.0,
@@ -203,6 +204,18 @@ class Scene02 extends Phaser.Scene {
     }
   }
 
+  advanceToNextLevel() {
+    const nextSceneName = this.sceneDecisionTree.getNextSceneName();
+    console.log("Avançando para a próxima fase...");
+    console.log("Moedas coletadas na fase 2: ", this.collectedCoinsList);
+    this.sndMusic.stop();
+    this.scene.start(nextSceneName, {
+      score: this.score,
+      remainingTime: this.remainingTime,
+      collectedCoinsList: this.collectedCoinsList,
+    });
+  }
+
   showInventory() {
     // Limpar qualquer exibição anterior para evitar duplicações
     this.inventoryGroup.clear(true, true);
@@ -258,6 +271,7 @@ class Scene02 extends Phaser.Scene {
     this.sndGetCoin.play();
     // Salvar a moeda coletada no inventário
     this.collectedCoinsList.push({ value: coin.value });
+    console.log(this.collectedCoinsList);
 
     if (coin.valueText) {
       coin.valueText.destroy();
@@ -266,19 +280,14 @@ class Scene02 extends Phaser.Scene {
     coin.destroy();
 
     this.collectedCoins++;
+    console.log("collectedCoins fase2: ", this.collectedCoins);
 
     this.score += coin.value;
     this.setScore();
     // Verifica se todas as moedas foram coletadas
     if (this.collectedCoins === this.totalCoins) {
-      console.log(
-        "Todas as moedas coletadas! Avançando para a próxima fase..."
-      );
-      this.scene.start("Scene03", {
-        score: this.score,
-        remainingTime: this.remainingTime,
-        collectedCoinsList: this.collectedCoinsList,
-      });
+      console.log("Todas as moedas coletadas! Avançando para a fase 3...");
+      this.advanceToNextLevel();
     }
   }
 
@@ -297,7 +306,6 @@ class Scene02 extends Phaser.Scene {
       }
     }
   }
-
 
   setScore() {
     this.txtScore.setText(
@@ -405,8 +413,9 @@ class Scene02 extends Phaser.Scene {
     this.sndMusic.stop();
     this.physics.pause();
     // redefinindo a lista de moedas
-    this.collectedCoinsList = null;
+    this.collectedCoinsList = [];
     this.collectedCoins = 0;
+    this.score = 0;
 
     // Parar o evento do cronômetro
     if (this.timerEvent) {
@@ -444,7 +453,11 @@ class Scene02 extends Phaser.Scene {
         .setScrollFactor(0);
 
       this.input.keyboard.addKey("ENTER").on("down", () => {
-        this.scene.start("Scene01"); // Vai para a cena do menu inicial // Reinicia a cena atual
+        this.scene.start("Scene01", {
+          score: this.score,
+          remainingTime: this.remainingTime,
+          collectedCoinsList: this.collectedCoinsList,
+        }); 
       });
 
       this.add
@@ -467,5 +480,4 @@ class Scene02 extends Phaser.Scene {
   enemyHit() {
     this.endGame("HIT BY ENEMY");
   }
-  
 }

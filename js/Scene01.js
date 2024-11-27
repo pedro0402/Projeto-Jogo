@@ -48,6 +48,7 @@ class Scene01 extends Phaser.Scene {
   }
 
   init() {
+    this.collectedCoinsList = [];
     // Reiniciar o valor do cronômetro ao reiniciar a cena
     this.remainingTime = 60;
   }
